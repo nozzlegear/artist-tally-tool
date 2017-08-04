@@ -47,7 +47,7 @@ type SwuResponse = {
 let swuKey = Env.varRequired "ARTIST_TALLY_SWU_KEY"
 let swuTemplateId = Env.varRequired "ARTIST_TALLY_SWU_TEMPLATE_ID"
 let emailDomain = Env.varRequired "ARTIST_TALLY_EMAIL_DOMAIN"
-let apiDomain = Env.varRequired "ARTIST_TALLY_API_DOMAIN"
+let apiDomain = Env.varDefault "ARTIST_TALLY_API_DOMAIN" "localhost:3000"
 let isLive = (Env.varDefault "ENV" "development") = "production"
 
 let buildMessage<'bodyType> method url authHeader (body: 'bodyType option) = 
@@ -148,8 +148,8 @@ let sendEmailMessage (tally: seq<EmailTally>) = async {
 let main argv =
     let mayFifth2017 = 1493614800000L
     let since = midnightYesterday () |> toUnixTimestamp
-    let domain = if isLive then sprintf "https://%s" apiDomain else "http://localhost:3000"
-    let url = sprintf "http://localhost:3000/api/v1/orders/portraits/artist-tally?since=%i" mayFifth2017
+    let protocol = if isLive then "https" else "http"
+    let url = sprintf "%s://%s/api/v1/orders/portraits/artist-tally?since=%i" protocol apiDomain since
     let summaryResponse = buildMessage Http.HttpMethod.Get url None None |> makeRequest |> Async.RunSynchronously |> deserialize
 
     if summaryResponse.summary.Count = 0 then 
