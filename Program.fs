@@ -48,22 +48,6 @@ module MainModule =
         test: bool
     }
 
-    type IX = 
-        abstract member S: string
-
-    type IY =
-        inherit IX
-        abstract member D: string
-
-    type Shwoop () = 
-        interface IY with
-            member x.S = ""
-            member x.D = ""
-
-        member x.SayHello name = printfn "Hello %s" name    
-
-    let t = Shwoop ()
-
     let swuKey = Env.varRequired "ARTIST_TALLY_SWU_KEY"
     let swuTemplateId = Env.varRequired "ARTIST_TALLY_SWU_TEMPLATE_ID"
     let emailDomain = Env.varRequired "ARTIST_TALLY_EMAIL_DOMAIN"
