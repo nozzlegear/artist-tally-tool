@@ -52,7 +52,7 @@ module MainModule =
     let swuTemplateId = Env.varRequired "ARTIST_TALLY_SWU_TEMPLATE_ID"
     let emailDomain = Env.varRequired "ARTIST_TALLY_EMAIL_DOMAIN"
     let apiDomain = Env.varDefault "ARTIST_TALLY_API_DOMAIN" "localhost:3000"
-    let isLive = (Env.varDefault "ENV" "development") = "production"
+    let isLive = (Env.varDefault "ARTIST_TALLY_ENV" "development") = "production"
 
     let buildMessage<'bodyType> method url authHeader (body: 'bodyType option) = 
         let uri = Uri url
