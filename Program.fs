@@ -83,9 +83,14 @@ module MainModule =
         return body
     }
 
-    let midnightYesterday () = 
+    let midnight () = 
         let now = DateTime.Now
         let midnight = DateTime (now.Year, now.Month, now.Day, 0, 0, 0)
+
+        midnight
+
+    let midnightYesterday () = 
+        let midnight = midnight ()
         let days = float -1;
 
         midnight.AddDays days
@@ -152,8 +157,9 @@ module MainModule =
     let main argv =
         let mayFifth2017 = 1493614800000L
         let since = midnightYesterday () |> toUnixTimestamp
+        let until = midnight () |> toUnixTimestamp
         let protocol = if isLive then "https" else "http"
-        let url = sprintf "%s://%s/api/v1/orders/portraits/artist-tally?since=%i" protocol apiDomain since
+        let url = sprintf "%s://%s/api/v1/orders/portraits/artist-tally?since=%i&until=%i" protocol apiDomain since until
         let summaryResponse = buildMessage Http.HttpMethod.Get url None None |> makeRequest |> Async.RunSynchronously |> deserialize
 
         if summaryResponse.summary.Count = 0 then 
