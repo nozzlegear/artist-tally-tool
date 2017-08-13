@@ -11,28 +11,28 @@ open Utils
 module MainModule =
 
     type TallyResponse = {
-        since: int64;
-        summary: Dictionary<string, int>;
+        since: int64
+        summary: Dictionary<string, int>
     }
 
     type EmailTally = {
-        artist: string;
-        count: int;
+        artist: string
+        count: int
     }
 
     type SwuRecipient = {
-        name: string;
-        address: string;
+        name: string
+        address: string
     }
 
     type SwuSender = {
-        name: string;
-        address: string;
-        replyTo: string;
+        name: string
+        address: string
+        replyTo: string
     }
 
     type SwuTallyTemplateData = {
-        date: string;
+        date: string
         tally: EmailTally seq
     }
 
@@ -54,21 +54,18 @@ module MainModule =
     let apiDomain = Env.varDefault "ARTIST_TALLY_API_DOMAIN" "localhost:3000"
     let isLive = (Env.varDefault "ARTIST_TALLY_ENV" "development") = "production"
 
-    let buildMessage<'bodyType> method url authHeader (body: 'bodyType option) = 
-        let uri = Uri url
-        let message = new Http.HttpRequestMessage ()
-        message.Method <- method
-        message.RequestUri <- uri
+    let buildMessage method url authHeader body = 
+        let message = new Http.HttpRequestMessage (Method = method, RequestUri = Uri url)
 
-        if body.IsSome then
-            let serialized = JsonConvert.SerializeObject body.Value
+        body
+        |> Option.iter (fun body ->
+            let serialized = JsonConvert.SerializeObject body
             let content = new Http.StringContent (serialized, Text.Encoding.UTF8, "application/json")
 
-            message.Content <- content
+            message.Content <- content)
 
-        match authHeader with
-        | Some header -> message.Headers.Authorization <- header
-        | None -> ignore ()    
+        authHeader
+        |> Option.iter (fun header -> message.Headers.Authorization <- header)
 
         message
 
@@ -83,17 +80,9 @@ module MainModule =
         return body
     }
 
-    let midnight () = 
-        let now = DateTime.Now
-        let midnight = DateTime (now.Year, now.Month, now.Day, 0, 0, 0)
+    let midnight () = DateTime.Now.Date
 
-        midnight
-
-    let midnightYesterday () = 
-        let midnight = midnight ()
-        let days = float -1;
-
-        midnight.AddDays days
+    let midnightYesterday () = midnight().AddDays -1.
 
     let toUnixTimestamp date = DateTimeOffset(date).ToUnixTimeMilliseconds()
 
@@ -129,7 +118,7 @@ module MainModule =
     let sendEmailMessage (tally: seq<EmailTally>) = async {
         let base64HeaderValue = sprintf "%s:" swuKey |> Text.Encoding.UTF8.GetBytes |> Convert.ToBase64String
         let header = Http.Headers.AuthenticationHeaderValue ("Basic", base64HeaderValue)
-        let url = sprintf "https://api.sendwithus.com/api/v1/send"
+        let url = "https://api.sendwithus.com/api/v1/send"
         let date = DateTime.Now.ToString ("MMM dd, yyyy")
         let message = 
             {
@@ -148,25 +137,34 @@ module MainModule =
                         tally = tally
                     }
             }
-        let! response = buildMessage Http.HttpMethod.Post url (Some header) (Some message) |> makeRequest
+        let! response =
+            buildMessage Http.HttpMethod.Post url (Some header) (Some message)
+            |> makeRequest
         
         return response |> deserialize<SwuResponse>
     }
 
     [<EntryPoint>]
     let main argv =
-        let mayFifth2017 = 1493614800000L
         let since = midnightYesterday () |> toUnixTimestamp
         let until = midnight () |> toUnixTimestamp
         let protocol = if isLive then "https" else "http"
         let url = sprintf "%s://%s/api/v1/orders/portraits/artist-tally?since=%i&until=%i" protocol apiDomain since until
-        let summaryResponse = buildMessage Http.HttpMethod.Get url None None |> makeRequest |> Async.RunSynchronously |> deserialize
+        let summaryResponse =
+            buildMessage Http.HttpMethod.Get url None None
+            |> makeRequest
+            |> Async.RunSynchronously
+            |> deserialize
 
-        if summaryResponse.summary.Count = 0 then 
-            printfn "Tally response contained an empty summary. Was the `since` parameter (%i) incorrect?" since
-        else 
-            for kvp in summaryResponse.summary do printfn "%s: %i portraits" kvp.Key kvp.Value
+        match summaryResponse.summary.Count with
+        | 0 -> printfn "Tally response contained an empty summary. Was the `since` parameter (%i) incorrect?" since
+        | _ -> summaryResponse.summary
+               |> Seq.iter (fun kvp -> printfn "%s: %i portraits" kvp.Key kvp.Value)
 
-        let emailResponse = summaryResponse.summary |> convertResponseToTally |> sendEmailMessage |> Async.RunSynchronously
+        let emailResponse =
+            summaryResponse.summary
+            |> convertResponseToTally
+            |> sendEmailMessage
+            |> Async.RunSynchronously
 
         0 // return an integer exit code
