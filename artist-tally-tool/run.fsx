@@ -185,6 +185,10 @@ let Run(myTimer: TimerInfo, log: TraceWriter) =
     let until = midnight () |> toUnixTimestamp
     let protocol = if isLive then "https" else "http"
     let url = sprintf "%s://%s/api/v1/orders/portraits/artist-tally?since=%i&until=%i" protocol apiDomain since until
+
+    sprintf "With URL: %s" url
+    |> log.Info
+
     let summaryResponse =
         prepareRequest HttpMethod.Get url None None
         |> sendRequest
