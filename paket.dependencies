@@ -7,4 +7,3 @@ nuget http.fs
 nuget microsoft.azure.webjobs.extensions
 nuget microsoft.fsharplu
 nuget microsoft.fsharplu.json
-nuget newtonsoft.json
