@@ -82,7 +82,7 @@ let prepareRequest method url authHeader body =
     let message = 
         Request.createUrl method url
         |> ifOptionIsSome body (fun body message -> 
-            let serializedBody = Compact.serialize body
+            let serializedBody = JsonConvert.SerializeObject body
             let contentTypeHeader = 
                 ContentType.parse "application/json" 
                 |> Option.get 
@@ -133,7 +133,7 @@ let sendEmailMessage swuKey swuTemplateId emailRecipient emailCcs sender (tally:
         prepareRequest HttpMethod.Post url (Some header) (Some message)
         |> sendRequest
     
-    return response |> Compact.deserialize<SwuResponse>
+    return response |> JsonConvert.DeserializeObject<SwuResponse>
 }
 
 
@@ -194,7 +194,7 @@ let Run(myTimer: TimerInfo, log: TraceWriter) =
         prepareRequest HttpMethod.Get url None None
         |> sendRequest
         |> run
-        |> Compact.deserialize<TallyResponse>
+        |> JsonConvert.DeserializeObject<TallyResponse>
 
     match summaryResponse.summary.Count with
     | 0 -> printfn "Tally response contained an empty summary. Was the `since` parameter (%i) incorrect?" since
