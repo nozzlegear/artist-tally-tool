@@ -177,6 +177,9 @@ let Run(myTimer: TimerInfo, log: TraceWriter) =
 
     sprintf "Using apiDomain %s" apiDomain
     |> log.Info
+    
+    sprintf "Email domain is: %s" emailDomain
+    |> log.Info
 
     let since = midnightYesterday () |> toUnixTimestamp
     let until = midnight () |> toUnixTimestamp
