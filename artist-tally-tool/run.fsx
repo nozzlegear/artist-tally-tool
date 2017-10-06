@@ -111,7 +111,7 @@ let toUnixTimestamp date = DateTimeOffset(date).ToUnixTimeMilliseconds()
 let convertResponseToTally (summary: Dictionary<string, int>) = 
     summary |> Seq.map(fun kvp -> { artist = kvp.Key; count = kvp.Value })
 
-let sendEmailMessage swuKey swuTemplateId emailRecipient emailCcs sender (tally: seq<EmailTally>) = job {
+let sendEmailMessage swuKey swuTemplateId emailRecipient emailCcs sender (log: TraceWriter) (tally: seq<EmailTally>) = job {
     let base64HeaderValue = sprintf "%s:" swuKey |> Text.Encoding.UTF8.GetBytes |> Convert.ToBase64String
     //Http.Headers.AuthenticationHeaderValue ("Basic", base64HeaderValue)
     let header = Custom ("Authentication", sprintf "Basic %s" base64HeaderValue) 
@@ -132,6 +132,8 @@ let sendEmailMessage swuKey swuTemplateId emailRecipient emailCcs sender (tally:
     let! response =
         prepareRequest HttpMethod.Post url (Some header) (Some message)
         |> sendRequest
+
+    sprintf "SWU response: %s" response |> log.Info
     
     return response |> JsonConvert.DeserializeObject<SwuResponse>
 }
@@ -190,10 +192,15 @@ let Run(myTimer: TimerInfo, log: TraceWriter) =
     sprintf "With URL: %s" url
     |> log.Info
 
-    let summaryResponse =
+    let summaryResponseString =
         prepareRequest HttpMethod.Get url None None
         |> sendRequest
         |> run
+
+    sprintf "Summary response: %s" summaryResponseString |> log.Info    
+
+    let summaryResponse = 
+        summaryResponseString
         |> JsonConvert.DeserializeObject<TallyResponse>
 
     match summaryResponse.summary.Count with
@@ -204,7 +211,7 @@ let Run(myTimer: TimerInfo, log: TraceWriter) =
     let emailResponse =
         summaryResponse.summary
         |> convertResponseToTally
-        |> sendEmailMessage swuKey swuTemplateId emailRecipient emailCcs sender
+        |> sendEmailMessage swuKey swuTemplateId emailRecipient emailCcs sender log
         |> run
 
     sprintf "Artist Tally Tool finished at: %s" (DateTime.Now.ToString())
