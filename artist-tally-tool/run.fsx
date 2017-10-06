@@ -168,6 +168,7 @@ let sendEmailMessage (tally: seq<EmailTally>) = job {
     return response |> Compact.deserialize<SwuResponse>
 }
 
+
 let Run(myTimer: TimerInfo, log: TraceWriter) =
     sprintf "Artist Tally Tool executing at: %s" (DateTime.Now.ToString())
     |> log.Info
