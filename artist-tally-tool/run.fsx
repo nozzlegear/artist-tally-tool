@@ -116,11 +116,11 @@ let convertResponseToTally (summary: Dictionary<string, int>) =
 
 let formatEmail name = sprintf "%s@%s" name emailDomain
 
-let emailRecipient = 
+let emailRecipient: SwuRecipient = 
     if isLive then { name = "Mike"; address = formatEmail "mikef" }
     else { name = "Joshua Harms"; address = formatEmail "josh" }
 
-let emailCcs =
+let emailCcs: SwuRecipient list =
     if isLive then 
         [
             {
