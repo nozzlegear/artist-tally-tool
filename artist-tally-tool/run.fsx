@@ -19,6 +19,7 @@ open Microsoft.Azure.WebJobs.Extensions
 open Microsoft.FSharpLu.Json
 open HttpFs.Client
 open Hopac
+open Newtonsoft.Json
 
 type TallyResponse = {
     since: int64
