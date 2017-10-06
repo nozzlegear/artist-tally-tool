@@ -72,12 +72,6 @@ let envVarDefault key defaultValue =
     | s when isNull s || s = "" -> defaultValue
     | s -> s
 
-let swuKey = envVarRequired "ARTIST_TALLY_SWU_KEY"
-let swuTemplateId = envVarRequired "ARTIST_TALLY_SWU_TEMPLATE_ID"
-let emailDomain = envVarRequired "ARTIST_TALLY_EMAIL_DOMAIN"
-let apiDomain = envVarDefault "ARTIST_TALLY_API_DOMAIN" "localhost:3000"
-let isLive = (envVarDefault "ARTIST_TALLY_ENV" "development") = "production"
-
 let ifOptionIsSome (opt: 'optionType option) (ifOptionIsSomeFunc: 'optionType -> 'returnType -> 'returnType) (ifOptionIsNoneValue: 'returnType): 'returnType = 
     match opt with 
     | Some o -> ifOptionIsSomeFunc o ifOptionIsNoneValue
@@ -116,31 +110,7 @@ let toUnixTimestamp date = DateTimeOffset(date).ToUnixTimeMilliseconds()
 let convertResponseToTally (summary: Dictionary<string, int>) = 
     summary |> Seq.map(fun kvp -> { artist = kvp.Key; count = kvp.Value })
 
-let formatEmail name = sprintf "%s@%s" name emailDomain
-
-let emailRecipient: SwuRecipient = 
-    if isLive then { name = "Mike"; address = formatEmail "mikef" }
-    else { name = "Joshua Harms"; address = formatEmail "josh" }
-
-let emailCcs: SwuRecipient list =
-    if isLive then 
-        [
-            {
-                name = "Tim"
-                address = formatEmail "tim"
-            }
-            {
-                name = "Jeanette"
-                address = formatEmail "jeanette"
-            }
-            {
-                name = "Joshua Harms"
-                address = formatEmail "josh"
-            }
-        ]
-    else []    
-
-let sendEmailMessage (tally: seq<EmailTally>) = job {
+let sendEmailMessage swuKey swuTemplateId emailRecipient emailCcs sender (tally: seq<EmailTally>) = job {
     let base64HeaderValue = sprintf "%s:" swuKey |> Text.Encoding.UTF8.GetBytes |> Convert.ToBase64String
     //Http.Headers.AuthenticationHeaderValue ("Basic", base64HeaderValue)
     let header = Custom ("Authentication", sprintf "Basic %s" base64HeaderValue) 
@@ -151,12 +121,7 @@ let sendEmailMessage (tally: seq<EmailTally>) = job {
             template = swuTemplateId
             recipient = emailRecipient
             cc = emailCcs
-            sender = 
-                {
-                    name = "KMSignalR Superintendent"
-                    address = formatEmail "superintendent"
-                    replyTo = formatEmail "superintendent" 
-                }
+            sender = sender
             template_data = 
                 {
                     date = date
@@ -174,6 +139,41 @@ let sendEmailMessage (tally: seq<EmailTally>) = job {
 let Run(myTimer: TimerInfo, log: TraceWriter) =
     sprintf "Artist Tally Tool executing at: %s" (DateTime.Now.ToString())
     |> log.Info
+
+    let swuKey = envVarRequired "ARTIST_TALLY_SWU_KEY"
+    let swuTemplateId = envVarRequired "ARTIST_TALLY_SWU_TEMPLATE_ID"
+    let emailDomain = envVarRequired "ARTIST_TALLY_EMAIL_DOMAIN"
+    let apiDomain = envVarDefault "ARTIST_TALLY_API_DOMAIN" "localhost:3000"
+    let isLive = (envVarDefault "ARTIST_TALLY_ENV" "development") = "production"
+
+    let formatEmail name = sprintf "%s@%s" name emailDomain
+
+    let emailRecipient: SwuRecipient = 
+        if isLive then { name = "Mike"; address = formatEmail "mikef" }
+        else { name = "Joshua Harms"; address = formatEmail "josh" }
+    let emailCcs: SwuRecipient list =
+        if isLive then 
+            [
+                {
+                    name = "Tim"
+                    address = formatEmail "tim"
+                }
+                {
+                    name = "Jeanette"
+                    address = formatEmail "jeanette"
+                }
+                {
+                    name = "Joshua Harms"
+                    address = formatEmail "josh"
+                }
+            ]
+        else []
+    let sender = 
+        {
+            name = "KMSignalR Superintendent"
+            address = formatEmail "superintendent"
+            replyTo = formatEmail "superintendent" 
+        }    
 
     sprintf "Using apiDomain %s" apiDomain
     |> log.Info
@@ -203,7 +203,7 @@ let Run(myTimer: TimerInfo, log: TraceWriter) =
     let emailResponse =
         summaryResponse.summary
         |> convertResponseToTally
-        |> sendEmailMessage
+        |> sendEmailMessage swuKey swuTemplateId emailRecipient emailCcs sender
         |> run
 
     sprintf "Artist Tally Tool finished at: %s" (DateTime.Now.ToString())
