@@ -173,6 +173,9 @@ let Run(myTimer: TimerInfo, log: TraceWriter) =
     sprintf "Artist Tally Tool executing at: %s" (DateTime.Now.ToString())
     |> log.Info
 
+    sprintf "Using apiDomain %s" apiDomain
+    |> log.Info
+
     let since = midnightYesterday () |> toUnixTimestamp
     let until = midnight () |> toUnixTimestamp
     let protocol = if isLive then "https" else "http"
