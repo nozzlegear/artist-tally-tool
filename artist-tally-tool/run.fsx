@@ -186,7 +186,7 @@ let Run(myTimer: TimerInfo, log: TraceWriter) =
 
     let since = midnightYesterday () |> toUnixTimestamp
     let until = midnight () |> toUnixTimestamp
-    let protocol = if isLive then "https" else "http"
+    let protocol = if String.contains "localhost" apiDomain then "http" else "https"
     let url = sprintf "%s://%s/api/v1/orders/portraits/artist-tally?since=%i&until=%i" protocol apiDomain since until
 
     sprintf "With URL: %s" url
