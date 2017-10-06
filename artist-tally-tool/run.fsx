@@ -68,7 +68,9 @@ let envVarRequired key =
 let envVarDefault key defaultValue =
     let value = System.Environment.GetEnvironmentVariable key
 
-    if isNull value then defaultValue else value
+    match value with 
+    | s when isNull s || s = "" -> defaultValue
+    | s -> s
 
 let swuKey = envVarRequired "ARTIST_TALLY_SWU_KEY"
 let swuTemplateId = envVarRequired "ARTIST_TALLY_SWU_TEMPLATE_ID"
