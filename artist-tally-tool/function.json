@@ -1,7 +1,7 @@
 {
     "bindings": [
         {
-            "name": "ArtistTallyTool",
+            "name": "somethingDumb",
             "type": "timerTrigger",
             "direction": "in",
             "schedule": "0 0 12 * * 1"
