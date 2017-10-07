@@ -114,7 +114,7 @@ let convertResponseToTally (summary: Dictionary<string, int>) =
 let sendEmailMessage swuKey swuTemplateId emailRecipient emailCcs sender (log: TraceWriter) (tally: seq<EmailTally>) = job {
     let base64HeaderValue = sprintf "%s:" swuKey |> Text.Encoding.UTF8.GetBytes |> Convert.ToBase64String
     //Http.Headers.AuthenticationHeaderValue ("Basic", base64HeaderValue)
-    let header = Custom ("Authentication", sprintf "Basic %s" base64HeaderValue) 
+    let header = Custom ("Authorization", sprintf "Basic %s" base64HeaderValue) 
     let url = "https://api.sendwithus.com/api/v1/send"
     let date = DateTime.Now.ToString ("MMM dd, yyyy")
     let message = 
