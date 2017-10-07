@@ -1,5 +1,5 @@
 namespace ArtistTallyTool
-module AzureFunction =
+module public AzureFunction =
 
     open System
     open System.Net
