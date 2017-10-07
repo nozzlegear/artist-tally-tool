@@ -4,6 +4,7 @@ framework: net45, netstandard2.0
 source https://www.nuget.org/api/v2
 nuget fsharp.core
 nuget http.fs
+nuget Microsoft.Azure.WebJobs 3.0.0-beta3 beta
 nuget microsoft.azure.webjobs.extensions
 nuget microsoft.fsharplu
 nuget microsoft.fsharplu.json

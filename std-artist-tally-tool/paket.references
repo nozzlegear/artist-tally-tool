@@ -1,6 +1,7 @@
 fsharp.core framework: netstandard2.0
 microsoft.fsharplu framework: netstandard2.0
 newtonsoft.json framework: netstandard2.0
+microsoft.azure.webjobs framework: netstandard2.0
 Microsoft.Azure.WebJobs.Extensions framework: netstandard2.0
 Microsoft.Fsharplu.Json framework: netstandard2.0
 http.fs framework: netstandard2.0
