@@ -3,12 +3,14 @@ cls
 
 echo "build.cmd running in directory %cd%"
 
-.paket\paket.bootstrapper.exe
-if errorlevel 1 (
-  exit /b %errorlevel%
-)
+dotnet restore std-artist-tally-tool
 
-.paket\paket.exe restore --force
-if errorlevel 1 (
-  exit /b %errorlevel%
-)
+REM .paket\paket.bootstrapper.exe
+REM if errorlevel 1 (
+REM   exit /b %errorlevel%
+REM )
+
+REM .paket\paket.exe restore --force
+REM if errorlevel 1 (
+REM   exit /b %errorlevel%
+REM )
