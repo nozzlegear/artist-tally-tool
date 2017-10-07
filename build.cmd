@@ -4,6 +4,7 @@ cls
 echo "build.cmd running in directory %cd%"
 
 dotnet restore std-artist-tally-tool
+dotnet build -c Release std-artist-tally-tool
 
 REM .paket\paket.bootstrapper.exe
 REM if errorlevel 1 (
