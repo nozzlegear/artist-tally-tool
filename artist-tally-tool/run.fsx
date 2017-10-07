@@ -104,51 +104,20 @@ let sendRequest request = job {
 }
 
 let midnight () = DateTime.Now.Date
+
 let midnightYesterday () = midnight().AddDays -1.
 
-let toUnixTimestamp date = DateTimeOffset(date).ToUnixTimeMilliseconds()
+let toJsTimestamp date = DateTimeOffset(date).ToUnixTimeMilliseconds()
 
 let convertResponseToTally (summary: Dictionary<string, int>) = 
-    summary |> Seq.map(fun kvp -> { artist = kvp.Key; count = kvp.Value })
+    summary 
+    |> Seq.map(fun kvp -> { artist = kvp.Key; count = kvp.Value })
 
-let sendEmailMessage swuKey swuTemplateId emailRecipient emailCcs sender (log: TraceWriter) (tally: seq<EmailTally>) = job {
-    let base64HeaderValue = sprintf "%s:" swuKey |> Text.Encoding.UTF8.GetBytes |> Convert.ToBase64String
-    //Http.Headers.AuthenticationHeaderValue ("Basic", base64HeaderValue)
-    let header = Custom ("Authorization", sprintf "Basic %s" base64HeaderValue) 
-    let url = "https://api.sendwithus.com/api/v1/send"
-    let date = DateTime.Now.ToString ("MMM dd, yyyy")
-    let message = 
-        {
-            template = swuTemplateId
-            recipient = emailRecipient
-            cc = emailCcs
-            sender = sender
-            template_data = 
-                {
-                    date = date
-                    tally = tally
-                }
-        }
-    let! response =
-        prepareRequest HttpMethod.Post url (Some header) (Some message)
-        |> sendRequest
-
-    sprintf "SWU response: %s" response |> log.Info
-    
-    return response |> JsonConvert.DeserializeObject<SwuResponse>
-}
-
-
-let Run(myTimer: TimerInfo, log: TraceWriter) =
-    sprintf "Artist Tally Tool executing at: %s" (DateTime.Now.ToString())
-    |> log.Info
-
+let sendEmailMessage (tallyStartDate: DateTime) (tally: seq<EmailTally>) = job {
+    let emailDomain = envVarRequired "ARTIST_TALLY_EMAIL_DOMAIN"
+    let isLive = (envVarDefault "ARTIST_TALLY_ENV" "development") = "production"
     let swuKey = envVarRequired "ARTIST_TALLY_SWU_KEY"
     let swuTemplateId = envVarRequired "ARTIST_TALLY_SWU_TEMPLATE_ID"
-    let emailDomain = envVarRequired "ARTIST_TALLY_EMAIL_DOMAIN"
-    let apiDomain = envVarDefault "ARTIST_TALLY_API_DOMAIN" "localhost:3000"
-    let isLive = (envVarDefault "ARTIST_TALLY_ENV" "development") = "production"
-
     let formatEmail name = sprintf "%s@%s" name emailDomain
 
     let emailRecipient: SwuRecipient = 
@@ -178,41 +147,72 @@ let Run(myTimer: TimerInfo, log: TraceWriter) =
             replyTo = formatEmail "superintendent" 
         }    
 
-    sprintf "Using apiDomain %s" apiDomain
-    |> log.Info
+    let base64HeaderValue = 
+        sprintf "%s:" swuKey 
+        |> Text.Encoding.UTF8.GetBytes 
+        |> Convert.ToBase64String
+    let header = Custom ("Authorization", sprintf "Basic %s" base64HeaderValue) 
+    let url = "https://api.sendwithus.com/api/v1/send"
+    let message = 
+        {
+            template = swuTemplateId
+            recipient = emailRecipient
+            cc = emailCcs
+            sender = sender
+            template_data = 
+                {
+                    date = tallyStartDate.ToString ("MMM dd, yyyy")
+                    tally = tally
+                }
+        }
+    let! response =
+        prepareRequest HttpMethod.Post url (Some header) (Some message)
+        |> sendRequest
     
-    sprintf "Email domain is: %s" emailDomain
+    return response |> JsonConvert.DeserializeObject<SwuResponse>
+}
+
+
+let Run(myTimer: TimerInfo, log: TraceWriter) =
+    sprintf "Artist Tally Tool executing at: %s" (DateTime.Now.ToString())
     |> log.Info
 
-    let since = midnightYesterday () |> toUnixTimestamp
-    let until = midnight () |> toUnixTimestamp
+    let apiDomain = envVarDefault "ARTIST_TALLY_API_DOMAIN" "localhost:3000"
+    let startDate = midnightYesterday ()
+    let endDate = midnight ()
     let protocol = if String.contains "localhost" apiDomain then "http" else "https"
-    let url = sprintf "%s://%s/api/v1/orders/portraits/artist-tally?since=%i&until=%i" protocol apiDomain since until
+    let url = 
+        sprintf "%s://%s/api/v1/orders/portraits/artist-tally?since=%i&until=%i" 
+            protocol 
+            apiDomain 
+            (startDate |> toJsTimestamp)
+            (endDate |> toJsTimestamp)
 
-    sprintf "With URL: %s" url
-    |> log.Info
-
-    let summaryResponseString =
+    // Make a request to the API and get tallies for each artist
+    let summaryResponse =
         prepareRequest HttpMethod.Get url None None
         |> sendRequest
         |> run
-
-    sprintf "Summary response: %s" summaryResponseString |> log.Info    
-
-    let summaryResponse = 
-        summaryResponseString
         |> JsonConvert.DeserializeObject<TallyResponse>
 
     match summaryResponse.summary.Count with
-    | 0 -> printfn "Tally response contained an empty summary. Was the `since` parameter (%i) incorrect?" since
-    | _ -> summaryResponse.summary
-           |> Seq.iter (fun kvp -> printfn "%s: %i portraits" kvp.Key kvp.Value)
+    | 0 -> 
+        printfn "Tally response contained an empty summary. Was the `since` parameter (%i) incorrect?" 
+            (startDate |> toJsTimestamp)
+    | _ -> 
+        summaryResponse.summary
+        |> Seq.iter (fun kvp -> printfn "%s: %i portraits" kvp.Key kvp.Value)
 
     let emailResponse =
-        summaryResponse.summary
-        |> convertResponseToTally
-        |> sendEmailMessage swuKey swuTemplateId emailRecipient emailCcs sender log
-        |> run
+        try 
+            summaryResponse.summary
+            |> convertResponseToTally
+            |> sendEmailMessage startDate
+            |> run
+        with 
+        | e -> 
+            log.Error("API call to SendWithUs failed.", e)
+            reraise ()
 
     sprintf "Artist Tally Tool finished at: %s" (DateTime.Now.ToString())
     |> log.Info
