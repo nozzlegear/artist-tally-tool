@@ -1,0 +1,13 @@
+{
+    "scriptFile": ".\\bin\\Release\\netstandard2.0\\cs-timer.dll",
+    "entryPoint": "CSTimer.RandoClass.Run",
+    "bindings": [
+        {
+            "name": "myTimer",
+            "type": "timerTrigger",
+            "direction": "in",
+            "schedule": "0 0 12 * * 1"
+        }
+    ],
+    "disabled": false
+}
