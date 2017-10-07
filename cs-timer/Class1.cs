@@ -9,7 +9,7 @@ namespace CSTimer
         [Microsoft.Azure.WebJobs.FunctionNameAttribute("std-artist-tally-tool")]
         public void Run(TimerInfo myTimer, TraceWriter log)
         {
-            log.Info("My C# timer is running!!!!!")
+            log.Info("My C# timer is running!!!!!");
         }
     }
 }
