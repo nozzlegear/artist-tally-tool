@@ -1,5 +1,5 @@
 {
-    "scriptFile": ".\\bin\\Release\\netstandard2.0\\cs-timer.dll",
+    "scriptFile": ".\\bin\\Release\\netstandard2.0\\CSTimer.dll",
     "entryPoint": "CSTimer.RandoClass.Run",
     "bindings": [
         {
