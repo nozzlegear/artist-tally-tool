@@ -7,7 +7,7 @@ namespace CSTimer
     public static class RandoClass
     {
         [Microsoft.Azure.WebJobs.FunctionNameAttribute("std-artist-tally-tool")]
-        public void Run(TimerInfo myTimer, TraceWriter log)
+        public static void Run(TimerInfo myTimer, TraceWriter log)
         {
             log.Info("My C# timer is running!!!!!");
         }
