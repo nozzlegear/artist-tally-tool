@@ -56,6 +56,8 @@ echo "build.cmd running in directory %cd%"
 
 dotnet restore std-artist-tally-tool
 dotnet build -c Release std-artist-tally-tool
+dotnet restore CSTimer
+dotnet build -c Release CSTimer
 
 REM :: 1. Restore nuget packages
 REM call :ExecuteCmd nuget.exe restore "%DEPLOYMENT_SOURCE%\artist-tally-tool.sln" -MSBuildPath "%MSBUILD_15_DIR%"
