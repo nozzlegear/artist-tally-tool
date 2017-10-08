@@ -4,7 +4,7 @@ using Microsoft.Azure.WebJobs.Host;
 
 namespace CSTimer
 {
-    public class RandoClass
+    public static class RandoClass
     {
         [Microsoft.Azure.WebJobs.FunctionNameAttribute("std-artist-tally-tool")]
         public void Run(TimerInfo myTimer, TraceWriter log)
