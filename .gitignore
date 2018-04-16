@@ -290,3 +290,8 @@ __pycache__/
 # Built files
 dist/
 *.zip
+
+# Env files
+.env
+.env.dev
+.env.live
