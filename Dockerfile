@@ -1,4 +1,4 @@
-FROM google/dart
+FROM google/dart:1
 WORKDIR /app
 
 # copy project and restore as distinct layers
