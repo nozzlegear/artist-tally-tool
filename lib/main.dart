@@ -99,14 +99,10 @@ Future<String> makePostRequest(String url, String body, [Map<String, String> hea
 
 SwuMessage buildEmailData(DateTime startDate, List<TallyTemplate> tally) {
   final isLive = envIsLive();
-  final emailDomain = envVarRequired("ARTIST_TALLY_EMAIL_DOMAIN");
   final swuTemplateId = envVarRequired("ARTIST_TALLY_SWU_TEMPLATE_ID");
-  final formatEmail = (String name) => "$name@$emailDomain";
-  final SwuRecipient emailRecipient =
-      isLive ? new SwuRecipient("Jeanette", formatEmail("jeanette")) : new SwuRecipient("Joshua Harms", formatEmail("josh"));
+  final SwuRecipient emailRecipient = fromJson(envVarRequired("ARTIST_TALLY_PRIMARY_RECIPIENT"), SwuRecipient);
   final List<SwuRecipient> ccs = isLive ? fromJson(envVarRequired("ARTIST_TALLY_CC_LIST"), [List, SwuRecipient]) : [];
-  final sender =
-      new SwuSender("KMSignalR Superintendent", formatEmail("superintendent"), formatEmail("superintendent"));
+  final SwuSender sender = fromJson(envVarRequired("ARTIST_TALLY_SENDER"), SwuSender);
 
   return new SwuMessage()
     ..template = swuTemplateId
