@@ -1,4 +1,4 @@
-FROM google/dart:1
+FROM google/dart:1@sha256:b0a3c5f4c5370c18bbcf3114bd48b4691f5bedc419eaf28d2f7b3531e4da71e9
 WORKDIR /app
 
 # Install dos2unix for executing the analyze.sh file
