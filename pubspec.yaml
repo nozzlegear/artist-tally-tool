@@ -11,7 +11,7 @@ dependencies:
   http: "^0.11.3+16"
   dson:
     git:
-      url: git://github.com/nozzlegear/dson.git
+      url: https://github.com/nozzlegear/dson.git
       ref: c91a77acd60851
 
 dev_dependencies:
