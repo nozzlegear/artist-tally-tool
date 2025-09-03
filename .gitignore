@@ -13,6 +13,7 @@ doc/api/
 
 # Ignore secret files
 .env
+.env.dev
 .env.live
 .env.dev
 *-tally-tool-secrets.yaml
@@ -22,3 +23,5 @@ doc/api/
 
 # Built files
 bin/
+dist/
+*.zip

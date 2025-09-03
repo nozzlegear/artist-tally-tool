@@ -1,18 +1,14 @@
 name: artist_tally_tool
-version: 1.0.0
+version: 2.0.0
 publish_to: none
 
 environment:
-  sdk: '>1.20.1 <2.0.0'
+  sdk: '>=3.3.0 <4.0.0'
 
 dependencies:
-  logging: any
-  intl: "^0.15.2"
-  http: "^0.11.3+16"
-  dson:
-    git:
-      url: https://github.com/nozzlegear/dson.git
-      ref: c91a77acd60851
+  http: ^1.2.0
+  logging: ^1.2.0
+  intl: ^0.20.2
 
 dev_dependencies:
-  build_runner: ^0.6.1
+  lints: ^6.0.0
