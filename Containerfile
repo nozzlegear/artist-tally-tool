@@ -9,7 +9,7 @@ COPY . ./
 
 # Ensure packages are still up-to-date if anything has changed
 RUN dart pub get --offline
-RUN mkdir ./bin
+RUN mkdir -p ./bin
 RUN dart compile exe -o ./bin/main ./lib/main.dart
 
 # Build minimal image from AOT-compiled `/app/bin/main` and required system
@@ -18,8 +18,9 @@ FROM scratch
 COPY --from=build /runtime/ /
 COPY --from=build /app/bin/main /app/bin/
 
+ARG REPO_URL
 ARG COMMIT_SHA
-LABEL org.opencontainers.image.source=https://github.com/keith-m-merrick-co-inc/artist-tally-tool
+LABEL org.opencontainers.image.source=$REPO_URL
 LABEL org.opencontainers.image.revision=$COMMIT_SHA
 
 CMD ["/usr/bin/main"]
