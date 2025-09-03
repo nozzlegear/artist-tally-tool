@@ -23,4 +23,4 @@ ARG COMMIT_SHA
 LABEL org.opencontainers.image.source=$REPO_URL
 LABEL org.opencontainers.image.revision=$COMMIT_SHA
 
-CMD ["/usr/bin/main"]
+CMD ["/app/bin/main"]
