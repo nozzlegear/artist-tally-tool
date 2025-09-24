@@ -1,0 +1,10 @@
+[Unit]
+Description=Run artist-tally-tool Tue–Sat at 12:00
+
+[Timer]
+OnCalendar=Tue..Sat 12:00
+Persistent=true
+Unit=artist-tally.service
+
+[Install]
+WantedBy=timers.target

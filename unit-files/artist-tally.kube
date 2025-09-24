@@ -1,0 +1,11 @@
+[Unit]
+Description=Artist Tally via kube play
+
+[Kube]
+Yaml=%h/sites-enabled/artist-tally-tool/pod.yaml
+#PodmanArgs=--replace
+# LogDriver=journal
+# AutoUpdate=registry
+
+[Install]
+WantedBy=default.target

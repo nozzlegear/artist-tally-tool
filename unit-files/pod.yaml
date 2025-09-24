@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: artist-tally
+spec:
+  restartPolicy: Never
+  containers:
+  - name: job
+    image: ghcr.io/keith-m-merrick-co-inc/artist-tally-tool@sha256:ec9809e3575f91ff1e92ad858e89bcc70adf69f52572ac9e2a338c87b6e16f6f
+    envFrom:
+    - secretRef:
+        name: artist-tally-tool-secrets
